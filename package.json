@@ -1,0 +1,10 @@
+{
+  "name": "weather-mood-icecream",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "날씨와 기분에 따라 AI가 아이스크림을 추천해주는 웹앱",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
