@@ -268,7 +268,7 @@
 
     <!-- Bento Interaction Grid (자리만 마련, 추후 게시판/기록 기능 연동용) -->
     <div class="grid grid-cols-2 gap-md">
-      <button class="glass-panel rounded-lg p-md cloud-shadow flex flex-col items-center justify-center gap-sm active:scale-95 transition-all hover:bg-white/90" onclick="showToast('커뮤니티 게시판은 준비 중이에요 🍧')">
+      <button class="glass-panel rounded-lg p-md cloud-shadow flex flex-col items-center justify-center gap-sm active:scale-95 transition-all hover:bg-white/90" onclick="showView('viewBoard')">
         <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
           <span class="material-symbols-outlined">forum</span>
         </div>
@@ -292,17 +292,42 @@
   </div>
 </main>
 
+<!-- ===================== VIEW 3: 커뮤니티 보드 ===================== -->
+<main id="viewBoard" class="pt-24 pb-32 px-container-padding max-w-[600px] mx-auto flex flex-col gap-lg" hidden>
+  <section class="flex flex-col gap-xs">
+    <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">커뮤니티 보드</h2>
+    <p class="font-body-lg text-body-lg text-on-surface-variant">오늘의 아이스크림에 대한 의견을 자유롭게 나눠보세요.</p>
+  </section>
+
+  <!-- 글쓰기 박스 -->
+  <div class="glass-panel rounded-lg p-lg cloud-shadow flex flex-col gap-md">
+    <input id="boardNickname" maxlength="20" class="w-full glass-panel rounded-full px-lg py-3 font-body-md text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all" placeholder="닉네임 (선택, 비우면 '익명')" />
+    <div class="relative group">
+      <textarea id="boardMessage" maxlength="300" class="w-full h-24 glass-panel rounded-lg p-lg font-body-md text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none" placeholder="오늘 먹은 아이스크림이나 추천받은 맛에 대한 생각을 남겨보세요!"></textarea>
+    </div>
+    <button id="boardSubmitBtn" class="w-full py-md rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 button-sheen flex items-center justify-center gap-2">
+      <span id="boardSubmitIcon" class="material-symbols-outlined text-[20px]">send</span>
+      <span id="boardSubmitLabel">게시하기</span>
+    </button>
+  </div>
+
+  <!-- 게시글 목록 -->
+  <div id="postList" class="flex flex-col gap-md">
+    <p class="text-center text-outline text-label-lg py-lg">의견을 불러오는 중이에요...</p>
+  </div>
+</main>
+
 <!-- Bottom Navigation Shell -->
 <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe bg-white/70 backdrop-blur-2xl border-t border-white/30 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] z-50">
-  <button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-6 py-1.5 transition-all duration-300">
+  <button id="navHome" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-6 py-1.5 transition-all duration-300" onclick="showView('viewInput')">
     <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home_app_logo</span>
     <span class="font-label-lg text-label-lg">Home</span>
   </button>
-  <button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high/50 rounded-full transition-colors" onclick="showToast('커뮤니티 게시판은 준비 중이에요 🍧')">
+  <button id="navBoard" class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high/50 rounded-full transition-colors" onclick="showView('viewBoard')">
     <span class="material-symbols-outlined">forum</span>
     <span class="font-label-lg text-label-lg">Board</span>
   </button>
-  <button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high/50 rounded-full transition-colors" onclick="showToast('추천 기록 보기는 준비 중이에요 📖')">
+  <button id="navHistory" class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high/50 rounded-full transition-colors" onclick="showToast('추천 기록 보기는 준비 중이에요 📖')">
     <span class="material-symbols-outlined">history</span>
     <span class="font-label-lg text-label-lg">History</span>
   </button>
@@ -323,6 +348,32 @@
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // ---------- 화면 전환 (Home / Result / Board) ----------
+  const VIEWS = ['viewInput', 'viewResult', 'viewBoard'];
+  function showView(viewId) {
+    VIEWS.forEach(id => {
+      document.getElementById(id).hidden = (id !== viewId);
+    });
+    document.body.classList.toggle('mode-result', viewId === 'viewResult');
+
+    // 하단 네비게이션 활성 상태 갱신
+    const navMap = { viewInput: 'navHome', viewBoard: 'navBoard' };
+    ['navHome', 'navBoard'].forEach(navId => {
+      const btn = document.getElementById(navId);
+      btn.classList.remove('bg-primary-container', 'text-on-primary-container', 'px-6', 'py-1.5');
+      btn.classList.add('text-on-surface-variant', 'px-4', 'py-2');
+    });
+    const activeNav = navMap[viewId];
+    if (activeNav) {
+      const btn = document.getElementById(activeNav);
+      btn.classList.remove('text-on-surface-variant', 'px-4', 'py-2');
+      btn.classList.add('bg-primary-container', 'text-on-primary-container', 'px-6', 'py-1.5');
+    }
+
+    if (viewId === 'viewBoard') loadBoardOnce();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ---------- 날씨 코드 -> 설명/아이콘 ----------
@@ -469,10 +520,7 @@
   submitBtn.addEventListener('click', requestRecommendation);
 
   document.getElementById('retryBtn').addEventListener('click', () => {
-    document.getElementById('viewResult').hidden = true;
-    document.getElementById('viewInput').hidden = false;
-    document.body.classList.remove('mode-result');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showView('viewInput');
   });
 
   function showResult(data) {
@@ -489,13 +537,152 @@
       tagEl.hidden = true;
     }
 
-    document.getElementById('viewInput').hidden = true;
-    document.getElementById('viewResult').hidden = false;
-    document.body.classList.add('mode-result');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showView('viewResult');
   }
 
   initWeather();
+</script>
+
+<!-- ===================== Firebase (게시판) ===================== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, serverTimestamp,
+    query, orderBy, limit, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCYcSMykWd6gaoTGZYqembhV6kQl-BVCOc",
+    authDomain: "selecticecream.firebaseapp.com",
+    projectId: "selecticecream",
+    storageBucket: "selecticecream.firebasestorage.app",
+    messagingSenderId: "622170953359",
+    appId: "1:622170953359:web:6f48c77685ce606c04c2fa"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const postsCol = collection(db, 'boardPosts');
+
+  let boardLoaded = false;
+
+  // ---------- 상대 시간 표시 ----------
+  function timeAgo(date) {
+    const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
+    if (diffMin < 1) return '방금 전';
+    if (diffMin < 60) return `${diffMin}분 전`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}시간 전`;
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 7) return `${diffDay}일 전`;
+    return date.toLocaleDateString('ko-KR');
+  }
+
+  // ---------- 게시글 목록 렌더링 (textContent만 사용해 XSS 방지) ----------
+  function renderPosts(snapshot) {
+    const listEl = document.getElementById('postList');
+    listEl.innerHTML = '';
+
+    if (snapshot.empty) {
+      const emptyMsg = document.createElement('p');
+      emptyMsg.className = 'text-center text-outline text-label-lg py-lg';
+      emptyMsg.textContent = '아직 등록된 의견이 없어요. 첫 의견을 남겨보세요!';
+      listEl.appendChild(emptyMsg);
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+
+      const card = document.createElement('article');
+      card.className = 'glass-panel rounded-lg p-lg cloud-shadow flex flex-col gap-sm';
+
+      const header = document.createElement('div');
+      header.className = 'flex items-center gap-md';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-lg shrink-0';
+      avatar.textContent = (post.nickname || '익명').slice(0, 1);
+
+      const nameCol = document.createElement('div');
+      const nameEl = document.createElement('p');
+      nameEl.className = 'font-label-lg text-on-surface';
+      nameEl.textContent = post.nickname || '익명';
+      const timeEl = document.createElement('p');
+      timeEl.className = 'text-label-sm text-outline';
+      timeEl.textContent = post.createdAt?.toDate ? timeAgo(post.createdAt.toDate()) : '방금 전';
+      nameCol.appendChild(nameEl);
+      nameCol.appendChild(timeEl);
+
+      header.appendChild(avatar);
+      header.appendChild(nameCol);
+
+      const msgEl = document.createElement('p');
+      msgEl.className = 'font-body-md text-body-md text-on-surface-variant whitespace-pre-wrap';
+      msgEl.textContent = post.message || '';
+
+      card.appendChild(header);
+      card.appendChild(msgEl);
+      listEl.appendChild(card);
+    });
+  }
+
+  // 게시판 화면에 처음 진입할 때만 실시간 리스너 연결 (window에 노출해 일반 스크립트에서 호출)
+  window.loadBoardOnce = function () {
+    if (boardLoaded) return;
+    boardLoaded = true;
+    const q = query(postsCol, orderBy('createdAt', 'desc'), limit(50));
+    onSnapshot(q, renderPosts, (err) => {
+      console.error('Firestore listen error:', err);
+      const listEl = document.getElementById('postList');
+      listEl.innerHTML = '';
+      const errMsg = document.createElement('p');
+      errMsg.className = 'text-center text-error text-label-lg py-lg';
+      errMsg.textContent = '의견을 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+      listEl.appendChild(errMsg);
+    });
+  };
+
+  async function submitBoardPost() {
+    const nicknameInput = document.getElementById('boardNickname');
+    const messageInput = document.getElementById('boardMessage');
+    const submitBtn = document.getElementById('boardSubmitBtn');
+    const submitIcon = document.getElementById('boardSubmitIcon');
+    const submitLabel = document.getElementById('boardSubmitLabel');
+
+    const message = messageInput.value.trim();
+    if (!message) {
+      window.showToast('의견을 입력해주세요!');
+      return;
+    }
+    const nickname = nicknameInput.value.trim().slice(0, 20) || '익명';
+
+    submitBtn.disabled = true;
+    submitIcon.classList.add('spin');
+    submitIcon.textContent = 'progress_activity';
+    submitLabel.textContent = '게시하는 중...';
+
+    try {
+      await addDoc(postsCol, {
+        nickname,
+        message: message.slice(0, 300),
+        createdAt: serverTimestamp()
+      });
+      messageInput.value = '';
+      nicknameInput.value = '';
+      window.showToast('의견이 등록되었어요! 🍨');
+    } catch (err) {
+      console.error('Firestore write error:', err);
+      window.showToast('게시에 실패했어요. 다시 시도해주세요.');
+    } finally {
+      submitBtn.disabled = false;
+      submitIcon.classList.remove('spin');
+      submitIcon.textContent = 'send';
+      submitLabel.textContent = '게시하기';
+    }
+  }
+
+  document.getElementById('boardSubmitBtn').addEventListener('click', submitBoardPost);
 </script>
 </body>
 </html>
